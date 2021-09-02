@@ -1,0 +1,33 @@
+{
+    "name": "Напоминания",
+    "description": "Бот-агрегатор для новостей по ключевым словам.",
+    "env": {
+        "TELEGRAM_BOT_TOKEN": {
+            "description": "Токен Telegram-бота. Можно получить через @botfather"
+        },
+        "SUBSCRIBE_SECRET": {
+            "description": "Пароль для подписки на напоминания. Оставьте поле пустым, чтобы подписываться без пароля командой /subscribe. Если пароль установлен, для подписки отправьте его боту",
+            "required": false
+        },
+        "NOTIFY_BEFORE": {
+            "description": "Время в минутах до OLA, в которое бот должен выслать письмо и напоминание.",
+            "value": 30
+        },
+        "IMAP_HOST": {
+            "description": "IMAP хост вашего сервиса почты. Если это mail.ru, тогда IMAP хост будет imap.mail.ru",
+            "value": "imap.mail.ru"
+        },
+        "USER_EMAIL": {
+            "description": "Ваш email, на который приходят напоминания"
+        },
+        "USER_PASSWORD": {
+            "description": "Ваш пароль от почты. Если у вас mail.ru, тогда обычный пароль не подойдёт! Его надо создать специально для приложения в https://id.mail.ru/security > Пароли для внешних приложений."
+        },
+        "SERVICE_EMAILS": {
+            "description": "Почты, с которой обычно приходят сообщения об OLA. Можно указать несколько через запятую БЕЗ ПРОБЕЛОВ. Если не указать, будет работать, но дольше и большая вероятность того, что что-то сломается.",
+            "required": false,
+            "value": "abs@mail.ru,ads@mail.ru"
+        }
+    },
+    "addons": ["heroku-postgresql:hobby-dev"]
+  }
