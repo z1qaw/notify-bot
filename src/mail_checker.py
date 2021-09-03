@@ -68,8 +68,13 @@ class MailChecker(threading.Thread):
 
     def run(self):
         while True:
-            last_valid_messages = self.check_mail_for_valid_messages()
-            for valid_message in last_valid_messages:
-                self.prepare_new_valid_message(valid_message)
+            try:
+                last_valid_messages = self.check_mail_for_valid_messages()
+                for valid_message in last_valid_messages:
+                    self.prepare_new_valid_message(valid_message)
 
-            time.sleep(5)
+            except:
+                logger.exception('Thread down with exception')
+            finally:
+                time.sleep(5)
+                continue
