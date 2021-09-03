@@ -28,8 +28,8 @@ class ImapCheckerBot:
         for user_id in users_list:
             self._bot_instance.send_message(
                 user_id,
-                f'*Крайний срок по этой заявке через {remaining_minutes} '
-                'минут*: \n\n' + minimize_mail(task['email_body']), parse_mode='Markdown')
+                f'<b>Крайний срок по этой заявке через {remaining_minutes} '
+                'минут</b>: \n\n' + minimize_mail(task['email_body']), parse_mode='html')
         if users_list:
             self._db.remove_schedule_from_table(task['db_id'])
 
@@ -44,7 +44,8 @@ class ImapCheckerBot:
         for user_id in users_list:
             self._bot_instance.send_message(
                 user_id,
-                text)
+                text,
+                parse_mode='html')
 
 
 class BotPollingThread(threading.Thread):

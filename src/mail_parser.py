@@ -64,6 +64,7 @@ def parse_ola_sla_content(decoded_mail_body: str):
 
 def format_body(body: str):
     body = body \
+        .replace('*', '') \
         .replace('<html>', '') \
         .replace('<HTML>', '') \
         .replace('</html>', '') \
@@ -78,10 +79,18 @@ def format_body(body: str):
 
 
 def minimize_mail(decoded_mail_body):
+    new_body = decoded_mail_body.replace('*', '')
     new_body = re.sub(
-        'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)', '', decoded_mail_body)
+        'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)', '', new_body)
+    new_body = re.sub('<.*?>', '', new_body)
     try:
-        new_body = decoded_mail_body.split('\nПоддерживающий сервис')[0]
+        client_part = re.findall('Клиент: \S+', new_body)[0]
+        new_client_part = '\n<b>' + client_part + '</b>\n'
+        print(client_part)
+        print(new_client_part)
+        new_body = new_body.replace(client_part, new_client_part)
+        new_body = new_body.split('Поддерживающий сервис')[0]
+        new_body = re.sub('\n{2,}', '\n', new_body)
         return new_body
     except:
         return decoded_mail_body[:len(decoded_mail_body)//2] + ' ...'
