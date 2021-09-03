@@ -30,6 +30,8 @@ def is_mail_from_allowed_emails(mail_body, allowed_emails: list = []):
     return_path = msg.get('Return-Path')
     logger.info('Return path: ' + return_path)
     _, return_path = parseaddr(return_path)
+    if re.findall('envelope-from <sm.reply@x5.ru>', str(mail_body)):
+        return True
 
     if return_path in allowed_emails:
         return True
