@@ -50,9 +50,14 @@ class Scheduler(threading.Thread):
     def run(self):
         while True:
             current_timestamp = int(datetime.now().timestamp())
+            logger.info('Current timestamp ' + str(current_timestamp))
             incompleted_schedules = self.grab_incompleted_tasks_from_db()
             for inc_task in incompleted_schedules:
-                if current_timestamp >= inc_task['ola'] - self.notify_before:
+                notify_time = inc_task['ola'] - self.notify_before
+                logger.info('Time to notify: ' + str(
+                    notify_time - current_timestamp
+                ) + ' seconds')
+                if current_timestamp >= notify_time:
                     if current_timestamp <= inc_task['ola']:
                         self.imap_bot.notify_users(inc_task)
             logger.info('Check current schedules')
