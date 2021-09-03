@@ -8,13 +8,13 @@ import bot
 import database
 import imap_client
 import mail_parser
-from scheduler import Scheduler
+from scheduler import Scheduler, str_date_timestamp
 
 
 class MailChecker(threading.Thread):
     def __init__(self, database: database.Database, imap_bot: bot.ImapCheckerBot,
-                    imap_client: imap_client.ImapClient, scheduler: Scheduler,
-                    emails_to_check: list = []):
+                 imap_client: imap_client.ImapClient, scheduler: Scheduler,
+                 emails_to_check: list = []):
         super(MailChecker, self).__init__()
         self.db = database
         self.imap_bot = imap_bot
@@ -28,22 +28,24 @@ class MailChecker(threading.Thread):
     def check_mail_hash_in_db(self, mail_hash: str):
         return self.db.is_mail_hash_exist(mail_hash)
 
-    
     def check_mail_for_valid_messages(self):
         latest_mail = self.imap_client.get_latest_mail(mail_count=20)
         found_valid_msg = []
         for msg in latest_mail:
             logger.info('Checking found message')
-            mail_sender = mail_parser.is_mail_from_allowed_emails(msg, allowed_emails=self.emails_to_check)
+            mail_sender = mail_parser.is_mail_from_allowed_emails(
+                msg, allowed_emails=self.emails_to_check)
             if mail_sender:
-                logger.info('Found message from one of ' + str(self.emails_to_check))
+                logger.info('Found message from one of ' +
+                            str(self.emails_to_check))
                 mail_hash = hashlib.md5(str(msg).encode()).hexdigest()
 
                 if self.check_mail_hash_in_db(mail_hash):
                     logger.info('Valid mail hash already in db. Continue')
                     continue
                 else:
-                    logger.info('Valid mail hash not in db. Check for OLA or SLA deadlines.')
+                    logger.info(
+                        'Valid mail hash not in db. Check for OLA or SLA deadlines.')
                     decoded_msg = mail_parser.decode_mail_body(msg)
                     logger.info(decoded_msg)
 
@@ -62,6 +64,7 @@ class MailChecker(threading.Thread):
         logger.info('Prepare new valid message ', valid_msg['hash'])
         self.db.add_new_mail_hash(valid_msg['hash'])
         self.scheduler.task_mail(valid_msg)
+        self.imap_bot.send_new_email_to_users(valid_msg)
 
     def run(self):
         while True:

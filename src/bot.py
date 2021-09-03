@@ -5,12 +5,16 @@ from loguru import logger
 from telebot import TeleBot
 
 from database import Database
+from mail_parser import minimize_mail
+from tools import time_str_from_timestamp
+from scheduler import str_date_timestamp
 
 
 class ImapCheckerBot:
-    def __init__(self, token: str, database: Database) -> None:
+    def __init__(self, token: str, database: Database, notify_before_time: int) -> None:
         self._bot_instance = TeleBot(token)
         self._db = database
+        self.notify_before_time = notify_before_time
 
     def send_message(self, chat_id, message):
         self._bot_instance.send_message(chat_id, message)
@@ -21,10 +25,23 @@ class ImapCheckerBot:
         users_list = self._db.get_users_list()
         for user_id in users_list:
             self._bot_instance.send_message(
-                user_id, f'OLA по этому письму через {remaining_minutes} минут')
-            self._bot_instance.send_message(user_id, task['email_body'])
+                user_id,
+                f'OLA по этому письму через {remaining_minutes} '
+                'минут: \n\n' + minimize_mail(task['email_body']))
         if users_list:
             self._db.remove_schedule_from_table(task['db_id'])
+
+    def send_new_email_to_users(self, task):
+        print('task', task)
+        notify_time = time_str_from_timestamp(
+            str_date_timestamp(task['parsed_info']['ola_last_date']) - int(self.notify_before_time))
+        text = f'У вас новое письмо. Напоминание об OLA придёт вам в ' + \
+            notify_time + '\n\n' + task['body']
+        users_list = self._db.get_users_list()
+        for user_id in users_list:
+            self._bot_instance.send_message(
+                user_id,
+                text)
 
 
 class BotPollingThread(threading.Thread):

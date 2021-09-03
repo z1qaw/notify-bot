@@ -60,3 +60,7 @@ def parse_ola_sla_content(decoded_mail_body: str):
         'sla_last_date': sla_last_date,
         'ola_last_date': ola_last_date
     }
+
+
+def minimize_mail(decoded_mail_body):
+    return decoded_mail_body[:len(decoded_mail_body)//2] + ' ...'

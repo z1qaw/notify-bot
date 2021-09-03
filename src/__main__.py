@@ -15,6 +15,8 @@ IMAP_CREDS = {
 BOT_PASSWORD = get_env_var('SUBSCRIBE_SECRET', required=False)
 SERVICE_EMAILS = get_env_var('SERVICE_EMAILS', required=False)
 SERVICE_EMAILS = SERVICE_EMAILS.split(',') if SERVICE_EMAILS else []
+NOTIFY_BEFORE = int(get_env_var(
+    'NOTIFY_BEFORE', required=False, default=30)) * 60
 
 db = database.Database(DB_PATH)
 db.check_email_hash_table()
@@ -23,13 +25,14 @@ db.check_user_table()
 
 imap_client = imap_client.ImapClient(IMAP_CREDS)
 
-imap_bot_instance = bot.ImapCheckerBot(TOKEN, database=db)
+imap_bot_instance = bot.ImapCheckerBot(
+    TOKEN, database=db, notify_before_time=NOTIFY_BEFORE)
 
 bot_polling = bot.BotPollingThread(
     imap_bot=imap_bot_instance, database=db, password=BOT_PASSWORD)
 bot_polling.start()
 
-scheduler = Scheduler(db, imap_bot_instance)
+scheduler = Scheduler(db, imap_bot_instance, notify_before=NOTIFY_BEFORE)
 scheduler.start()
 
 mail_checker = mail_checker.MailChecker(

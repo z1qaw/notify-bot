@@ -1,5 +1,6 @@
 import os
 from typing import Any
+from datetime import datetime
 
 
 def get_env_var(var_name: str, default: Any = None, required: bool = False) -> Any:
@@ -12,3 +13,8 @@ def get_env_var(var_name: str, default: Any = None, required: bool = False) -> A
         )
 
     return value
+
+
+def time_str_from_timestamp(timestamp: int):
+    d = datetime.fromtimestamp(timestamp)
+    return d.strftime('%H:%M %d/%m/%Y')

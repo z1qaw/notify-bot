@@ -4,7 +4,7 @@ from datetime import datetime
 
 from loguru import logger
 
-from bot import ImapCheckerBot
+
 from database import Database
 
 MIN_30 = 60 * 30
@@ -16,7 +16,7 @@ def str_date_timestamp(datetime_str: str) -> int:
 
 
 class Scheduler(threading.Thread):
-    def __init__(self, database: Database, imap_bot: ImapCheckerBot, notify_before: int = MIN_30):
+    def __init__(self, database: Database, imap_bot, notify_before: int = MIN_30):
         super(Scheduler, self).__init__()
         self.db = database
         self.imap_bot = imap_bot
