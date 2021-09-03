@@ -55,5 +55,6 @@ class Scheduler(threading.Thread):
                 if current_timestamp >= inc_task['ola'] - self.notify_before:
                     if current_timestamp <= inc_task['ola']:
                         self.imap_bot.notify_users(inc_task)
+            logger.info('Check current schedules')
 
             time.sleep(5)
