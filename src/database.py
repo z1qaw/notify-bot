@@ -28,7 +28,7 @@ class Database(threading.Thread):
         super(Database, self).__init__()
         self.setDaemon(True)
 
-        self.connection = psycopg2.connect(path, sslmode='enable')
+        self.connection = psycopg2.connect(path, sslmode='require')
         self.connection.autocommit = True
         self.cursor = self.connection.cursor()
         self.retry = retry
