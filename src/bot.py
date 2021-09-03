@@ -8,6 +8,7 @@ from database import Database
 from mail_parser import minimize_mail
 from tools import time_str_from_timestamp
 from scheduler import str_date_timestamp
+from mail_parser import format_body
 
 
 class ImapCheckerBot:
@@ -20,22 +21,24 @@ class ImapCheckerBot:
         self._bot_instance.send_message(chat_id, message)
 
     def notify_users(self, task):
+        task['email_body'] = format(task['email_body'])
         remaining_minutes = int(
             (task['ola'] - int(datetime.now().timestamp())) / 60)
         users_list = self._db.get_users_list()
         for user_id in users_list:
             self._bot_instance.send_message(
                 user_id,
-                f'OLA по этому письму через {remaining_minutes} '
-                'минут: \n\n' + minimize_mail(task['email_body']))
+                f'*Крайний срок по этой заявке через {remaining_minutes} '
+                'минут*: \n\n' + minimize_mail(task['email_body']), parse_mode='Markdown')
         if users_list:
             self._db.remove_schedule_from_table(task['db_id'])
 
     def send_new_email_to_users(self, task):
         print('task', task)
+        task['body'] = format_body(task['body'])
         notify_time = time_str_from_timestamp(
             str_date_timestamp(task['parsed_info']['ola_last_date']) - int(self.notify_before_time))
-        text = f'У вас новое письмо. Напоминание об OLA придёт вам в ' + \
+        text = f'У вас новое письмо. \nНапоминание об OLA придёт вам в ' + \
             notify_time + '\n\n' + task['body']
         users_list = self._db.get_users_list()
         for user_id in users_list:

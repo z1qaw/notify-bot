@@ -62,5 +62,26 @@ def parse_ola_sla_content(decoded_mail_body: str):
     }
 
 
+def format_body(body: str):
+    body = body \
+        .replace('<html>', '') \
+        .replace('<HTML>', '') \
+        .replace('</html>', '') \
+        .replace('</HTML>', '') \
+        .replace('<br/>', '\n') \
+        .replace('</div>', '')
+
+    body = re.sub('<STYLE>.*</STYLE>', '', body)
+    body = re.sub('<style>.*</style>', '', body)
+    body = re.sub('<.*?>', '', body)
+    return body
+
+
 def minimize_mail(decoded_mail_body):
-    return decoded_mail_body[:len(decoded_mail_body)//2] + ' ...'
+    new_body = re.sub(
+        'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)', '', decoded_mail_body)
+    try:
+        new_body = decoded_mail_body.split('\nПоддерживающий сервис')[0]
+        return new_body
+    except:
+        return decoded_mail_body[:len(decoded_mail_body)//2] + ' ...'
