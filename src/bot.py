@@ -4,11 +4,11 @@ from datetime import datetime
 from loguru import logger
 from telebot import TeleBot
 
-from database import Database
-from mail_parser import minimize_mail
-from tools import time_str_from_timestamp
-from scheduler import str_date_timestamp
-from mail_parser import format_body
+from .database import Database
+from .mail_parser import minimize_mail
+from .tools import time_str_from_timestamp
+from .scheduler import str_date_timestamp
+from .mail_parser import format_body
 
 
 class ImapCheckerBot:

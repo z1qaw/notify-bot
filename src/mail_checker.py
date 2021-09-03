@@ -4,11 +4,11 @@ import time
 
 from loguru import logger
 
-import bot
-import database
-import imap_client
-import mail_parser
-from scheduler import Scheduler, str_date_timestamp
+from . import bot
+from . import database
+from . import imap_client
+from . import mail_parser
+from .scheduler import Scheduler
 
 
 class MailChecker(threading.Thread):

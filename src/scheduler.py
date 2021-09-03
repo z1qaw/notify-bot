@@ -4,8 +4,7 @@ from datetime import datetime
 
 from loguru import logger
 
-
-from database import Database
+from .database import Database
 
 MIN_30 = 60 * 30
 

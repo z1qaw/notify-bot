@@ -1,9 +1,9 @@
-import bot
-import database
-import imap_client
-import mail_checker
-from scheduler import Scheduler
-from tools import get_env_var
+from . import bot
+from . import database
+from . import imap_client
+from . import mail_checker
+from .scheduler import Scheduler
+from .tools import get_env_var
 import os.path
 
 from loguru import logger
