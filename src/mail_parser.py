@@ -1,6 +1,7 @@
 import re
 from email.parser import HeaderParser
 from email.utils import parseaddr
+from loguru import logger
 
 
 class ValidationError(Exception):
@@ -27,6 +28,7 @@ def is_mail_from_allowed_emails(mail_body, allowed_emails: list = []):
 
     msg = HeaderParser().parsestr(str(mail_body))
     return_path = msg.get('Return-Path')
+    logger.info('Return path: ' + return_path)
     _, return_path = parseaddr(return_path)
 
     if return_path in allowed_emails:
