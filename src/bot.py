@@ -25,6 +25,11 @@ class ImapCheckerBot:
         remaining_minutes = int(
             (task['ola'] - int(datetime.now().timestamp())) / 60)
         users_list = self._db.get_users_list()
+        remaining_str_minutes = 'минут'
+        if str(remaining_minutes)[-1] in ['2', '3', '4']:
+            remaining_str_minutes = remaining_str_minutes + 'ы'
+        if str(remaining_minutes)[-1] == '1':
+            remaining_str_minutes = remaining_str_minutes + 'у'
         for user_id in users_list:
             self._bot_instance.send_message(
                 user_id,
