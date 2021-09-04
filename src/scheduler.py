@@ -1,7 +1,7 @@
 import threading
 import time
 from datetime import datetime
-
+from .mail_parser import format_body
 from loguru import logger
 
 from .database import Database
@@ -28,7 +28,7 @@ class Scheduler(threading.Thread):
             ola=str_date_timestamp(mail['parsed_info']['ola_last_date']),
             sla=str_date_timestamp(mail['parsed_info']['sla_last_date']),
             completed=False,
-            message_body=mail['body']
+            message_body=format_body(mail['body'])
         )
 
     def grab_incompleted_tasks_from_db(self):

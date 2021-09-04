@@ -94,7 +94,8 @@ def minimize_mail(decoded_mail_body):
         print(new_client_part)
         new_body = new_body.replace(client_part, new_client_part)
         new_body = new_body.split('Поддерживающий сервис')[0]
-        new_body = re.sub('\n{2,}', '\n', new_body)
+        new_body = re.sub('\n\S{1,2}\n', '\n\n', new_body)
+        new_body = re.sub('\n{3,}', '\n\n', new_body)
         return new_body
     except:
         return decoded_mail_body[:len(decoded_mail_body)//2] + ' ...'
