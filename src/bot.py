@@ -31,10 +31,13 @@ class ImapCheckerBot:
         if str(remaining_minutes)[-1] == '1':
             remaining_str_minutes = remaining_str_minutes + 'у'
         for user_id in users_list:
-            self._bot_instance.send_message(
-                user_id,
-                f'<b>Крайний срок по этой заявке через {remaining_str_minutes} '
-                'минут</b>: \n\n' + minimize_mail(task['email_body']), parse_mode='html')
+            try:
+                self._bot_instance.send_message(
+                    user_id,
+                    f'<b>Крайний срок по этой заявке через {remaining_minutes} '
+                    f'{remaining_str_minutes}</b>: \n\n' + minimize_mail(task['email_body']), parse_mode='html')
+            except:
+                pass
         if users_list:
             self._db.remove_schedule_from_table(task['db_id'])
 
