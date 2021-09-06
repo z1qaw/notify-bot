@@ -50,10 +50,13 @@ class ImapCheckerBot:
             notify_time + '\n\n' + task['body']
         users_list = self._db.get_users_list()
         for user_id in users_list:
-            self._bot_instance.send_message(
-                user_id,
-                text,
-                parse_mode='html')
+            try:
+                self._bot_instance.send_message(
+                    user_id,
+                    text,
+                    parse_mode='html')
+            except:
+                pass
 
 
 class BotPollingThread(threading.Thread):
