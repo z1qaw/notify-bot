@@ -44,10 +44,11 @@ class ImapCheckerBot:
     def send_new_email_to_users(self, task):
         print('task', task)
         task['body'] = format_body(task['body'])
-        notify_time = time_str_from_timestamp(
-            str_date_timestamp(task['parsed_info']['ola_last_date']) - int(self.notify_before_time))
-        text = f'У вас новое письмо. \nНапоминание об OLA придёт вам в ' + \
-            notify_time + '\n\n' + task['body']
+        # notify_time = time_str_from_timestamp(
+        #     str_date_timestamp(task['parsed_info']['ola_last_date']) - int(self.notify_before_time))
+        # text = f'У вас новое письмо. \nНапоминание об OLA придёт вам в ' + \
+        #     notify_time + '\n\n' + task['body']
+        text = task['body']
         users_list = self._db.get_users_list()
         for user_id in users_list:
             try:
