@@ -5,7 +5,7 @@ from loguru import logger
 from telebot import TeleBot
 
 from .database import Database
-from .mail_parser import minimize_mail
+from .mail_parser import format_new_mail, minimize_mail
 from .tools import time_str_from_timestamp
 from .scheduler import str_date_timestamp
 from .mail_parser import format_body
@@ -23,7 +23,7 @@ class ImapCheckerBot:
     def notify_users(self, task):
         task['email_body'] = format(task['email_body'])
         remaining_minutes = int(
-            (task['ola'] - int(datetime.now().timestamp())) / 60)
+            (task['ola'] - int(datetime.now().timestamp())) / 60) + 1
         users_list = self._db.get_users_list()
         remaining_str_minutes = 'минут'
         if str(remaining_minutes)[-1] in ['2', '3', '4']:
@@ -34,7 +34,7 @@ class ImapCheckerBot:
             try:
                 self._bot_instance.send_message(
                     user_id,
-                    f'<b>Крайний срок по этой заявке через {remaining_minutes} '
+                    f'<b>Заявка закончится через {remaining_minutes} '
                     f'{remaining_str_minutes}</b>: \n\n' + minimize_mail(task['email_body']), parse_mode='html')
             except:
                 pass
@@ -48,7 +48,7 @@ class ImapCheckerBot:
         #     str_date_timestamp(task['parsed_info']['ola_last_date']) - int(self.notify_before_time))
         # text = f'У вас новое письмо. \nНапоминание об OLA придёт вам в ' + \
         #     notify_time + '\n\n' + task['body']
-        text = task['body']
+        text = format_new_mail(task['body'])
         users_list = self._db.get_users_list()
         for user_id in users_list:
             try:

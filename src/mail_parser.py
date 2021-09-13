@@ -82,6 +82,54 @@ def format_body(body: str):
     return body
 
 
+def format_new_mail(body):
+    """
+На группу назначен инцидент ИНЦ-004515631.
+
+Крайний срок по SLA: 15.09.21 15:39:55 (MSK)
+Крайний срок по OLA: 14.09.21 16:11:40 (MSK)
+Клиент: 10475-Пятерочка
+SAP ID клиента: X292
+Телефон: (968)051-38-74
+Адрес: Рязанская обл., г.Спасск-Рязанский, Ломоносова ул, 1 З
+Поддерживающий сервис: ТС5 Поддержка. Мультимедиа
+Группа поддержки: 2-МРЦ-ИТ-МастСервис-Рязань-Север
+Краткое описание инцидента: Проблемы со Смартфоном
+Подробное описание:
+Смартфон не включается, нет возможности делать фото планограмм и выкладывать их на сайт
+
+
+Выберите тип проблемы: - Не включается смартфон
+    """
+    new_body = body.replace('*', '')
+    new_body = re.sub(
+        'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)', '', new_body)
+    new_body = re.sub('\s\(MSK\)', '', new_body)
+
+    if re.findall('Пересылаемое сообщение', new_body):
+        all_strs = re.findall('.+', new_body)
+        start_n = re.findall('На группу назначен.+', new_body)[0]
+        start_index = all_strs.index(start_n)
+        end_n = re.findall('\n\-+\n', new_body)[0].replace('\n', '')
+        end_index = all_strs.index(end_n)
+        new_body = '\n'.join(all_strs[start_index:end_index]).strip()
+
+    client_str = re.findall('Клиент\:.+', new_body)[0]
+    new_client_str = '\n<b>' + client_str + '</b>'
+    new_body = new_body.replace(client_str, new_client_str)
+
+    ola_str = re.findall(
+        'Крайний срок по OLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d', new_body)[0]
+    ola_time_str = re.findall('\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d', ola_str)[0]
+    new_ola_time_str = '<b>' + ola_time_str + '</b>'
+    new_ola_str = ola_str.replace(ola_time_str, new_ola_time_str)
+    new_body = new_body.replace(ola_str, new_ola_str)
+
+    new_body = re.sub('\nГруппа поддержки\:.+', '', new_body)
+
+    return new_body
+
+
 def minimize_mail(decoded_mail_body):
     new_body = decoded_mail_body.replace('*', '')
     new_body = re.sub(
@@ -89,9 +137,15 @@ def minimize_mail(decoded_mail_body):
     new_body = re.sub('<.*?>', '', new_body)
     try:
         client_part = re.findall('Клиент: \S+', new_body)[0]
-        new_client_part = '\n<b>' + client_part + '</b>\n'
-        print(client_part)
-        print(new_client_part)
+        new_client_part = '\n<b>' + client_part + '</b>'
+        new_body = re.sub('\s\(MSK\)', '', new_body)
+        ola_str = re.findall(
+            'Крайний срок по OLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d', new_body)[0]
+        ola_time_str = re.findall(
+            '\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d', ola_str)[0]
+        new_ola_time_str = '<b>' + ola_time_str + '</b>'
+        new_ola_str = ola_str.replace(ola_time_str, new_ola_time_str)
+        new_body = new_body.replace(ola_str, new_ola_str)
         new_body = new_body.replace(client_part, new_client_part)
         new_body = new_body.split('Поддерживающий сервис')[0]
         new_body = re.sub('\n\S{1,2}\n', '\n\n', new_body)
