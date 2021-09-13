@@ -126,6 +126,10 @@ SAP ID клиента: X292
     new_body = new_body.replace(ola_str, new_ola_str)
 
     new_body = re.sub('\nГруппа поддержки\:.+', '', new_body)
+    new_body = re.sub('\nПоддерживающий сервис\:.+', '', new_body)
+
+    new_body = re.sub('\n\S{1,2}\n', '\n\n', new_body)
+    new_body = re.sub('\n{3,}', '\n\n', new_body)
 
     return new_body
 
