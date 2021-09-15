@@ -127,7 +127,7 @@ class BotPollingThread(threading.Thread):
                 logger.info('Bot: Send text to {0}: {1}'.format(user_id, text))
                 self.bot.reply_to(message, text)
 
-        @self.bot.message_handler(commands=['/schedules'])
+        @self.bot.message_handler(commands=['schedules'])
         def schedules(message):
             logger.info('Bot: Message from {0}: {1}'.format(
                 message.chat.id, message.text))
