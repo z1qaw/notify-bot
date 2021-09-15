@@ -175,6 +175,7 @@ def minimize_text_to_schedule_list(db_schedule):
     del_command = f'/del{db_schedule[0]}'
     ola_str = re.findall(
         'OLA: <b>\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d</b>', schedule_text)[0]
+    ola_str = re.sub(':\d\d</b>', '</b>', ola_str)
     client_part = re.findall('<b>Клиент: \S+</b>', schedule_text)[0]
     inc_part = re.findall('группу назначен.+', schedule_text)[0]
     inc_digits = re.findall('\d+', inc_part)[0]
