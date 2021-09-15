@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 from email.parser import HeaderParser
 from email.utils import parseaddr
@@ -134,8 +135,51 @@ SAP ID клиента: X292
     return new_body
 
 
+def remaining_from_timestamp(timestamp):
+    now_ts = int(datetime.now().timestamp())
+    total_secs_remaining = int(timestamp) - now_ts
+    if total_secs_remaining <= 0:
+        return 'Уже прошло'
+    total_minutes_remaining = total_secs_remaining // 60
+    hours_remaining = total_minutes_remaining // 60
+    minutes_remaining = total_minutes_remaining % 60
+    days_remaining = hours_remaining // 24
+    hours_remaining = hours_remaining - (24 * days_remaining)
+
+    days_word = 'дней'
+    if str(days_remaining)[-1] == '1':
+        days_word = 'день'
+    if str(days_remaining)[-1] in ['2', '3', '4']:
+        days_word = 'дня'
+
+    hours_word = 'часов'
+    if str(hours_remaining)[-1] == '1':
+        hours_word = 'час'
+    if str(hours_remaining)[-1] in ['2', '3', '4']:
+        hours_word = 'часа'
+
+    minutes_word = 'минут'
+    if str(minutes_remaining)[-1] == '1':
+        minutes_word = 'час'
+    if str(minutes_remaining)[-1] in ['2', '3', '4']:
+        minutes_word = 'часа'
+
+    days_str = f'{days_remaining} {days_word} ' if days_remaining > 0 else ''
+    hours_str = f'{hours_remaining} {hours_word} ' if hours_remaining > 0 else ''
+    minutes_str = f'{minutes_remaining} {minutes_word}' if minutes_remaining > 0 else ''
+    return f'Через {days_str}{hours_str}{minutes_str}'
+
+
 def minimize_text_to_schedule_list(db_schedule):
-    pass
+    schedule_text = minimize_mail(db_schedule[4])
+    del_command = f'/del@{db_schedule[0]}'
+    ola_str = re.findall(
+        'OLA: <b>\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d</b>', schedule_text)[0]
+    client_part = re.findall('<b>Клиент: \S+</b>', schedule_text)[0]
+    inc_part = re.findall('группу назначен.+', schedule_text)[0]
+    inc_digits = re.findall('\d+', inc_part)[0]
+    time_remaining = remaining_from_timestamp(db_schedule[1])
+    return f'Инц-{inc_digits}\n{client_part}\n{ola_str}\n{time_remaining}\nУдалить: {del_command}'
 
 
 def minimize_mail(decoded_mail_body):

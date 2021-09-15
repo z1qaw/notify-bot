@@ -90,7 +90,7 @@ class Database(threading.Thread):
 
     @retry_on_error
     def get_incompleted_schedules(self):
-        self.check_schedule_table
+        self.check_schedule_table()
         with self.connection.cursor() as cursor:
             cursor.execute(
                 f'SELECT * FROM schedules WHERE completed = False;')
@@ -129,6 +129,17 @@ class Database(threading.Thread):
                 f'SELECT SUM(n_live_tup) FROM pg_stat_user_tables;')
             result = cursor.fetchone()
             return result
+
+    @retry_on_error
+    def is_schedule_exists(self, schedule_id: Union[str, int]) -> Union[bool, None]:
+        self.check_schedule_table()
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                f'SELECT COUNT(*) FROM schedules WHERE id = {schedule_id}'
+            )
+            exists = cursor.fetchone()
+            is_exists = True if exists[0] else False
+            return is_exists
 
     @retry_on_error
     def is_user_exist(self, user_id: Union[str, int]) -> Union[bool, None]:
