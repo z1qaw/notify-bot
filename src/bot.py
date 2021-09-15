@@ -160,7 +160,10 @@ class BotPollingThread(threading.Thread):
                 else:
                     inc_schedules_texts = []
                     for schedule in schedules:
-                        logger.info(schedule)
+                        remaining = int(schedule[1]) - \
+                            int(datetime.now().timestamp())
+                        if remaining < 0:
+                            continue
                         this_text = minimize_text_to_schedule_list(schedule)
                         inc_schedules_texts.append(this_text)
                     text += '\n\n'.join(inc_schedules_texts)
