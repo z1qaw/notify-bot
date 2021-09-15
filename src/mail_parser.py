@@ -134,6 +134,10 @@ SAP ID клиента: X292
     return new_body
 
 
+def minimize_text_to_schedule_list(db_schedule):
+    pass
+
+
 def minimize_mail(decoded_mail_body):
     new_body = decoded_mail_body.replace('*', '')
     new_body = re.sub(

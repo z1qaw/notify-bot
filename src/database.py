@@ -57,7 +57,6 @@ class Database(threading.Thread):
                     sla INT NOT NULL,
                     completed BOOLEAN DEFAULT False,
                     message_body TEXT,
-                    message_id INT NULL,
                     add_time TIMESTAMPTZ NOT NULL DEFAULT NOW()
                 )'''
             )
