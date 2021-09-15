@@ -93,7 +93,7 @@ class Database(threading.Thread):
         self.check_schedule_table()
         with self.connection.cursor() as cursor:
             cursor.execute(
-                f'SELECT * FROM schedules WHERE completed = False;')
+                f'SELECT * FROM schedules WHERE completed = False ORDER BY ola DESC;')
             result = cursor.fetchall()
             return result
 
