@@ -1,6 +1,6 @@
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, date
 from .mail_parser import format_body
 from loguru import logger
 
@@ -21,6 +21,7 @@ class Scheduler(threading.Thread):
         self.imap_bot = imap_bot
         self.current_schedules = []
         self.notify_before = notify_before
+        self.tests = []
 
     def task_mail(self, mail: dict):
         logger.info('Mail to add: ' + str(mail))
@@ -50,6 +51,12 @@ class Scheduler(threading.Thread):
     def run(self):
         while True:
             try:
+
+                if not str(date.today()) in self.tests:
+                    if datetime.now().hour >= 9:
+                        self.imap_bot.send_test_ok()
+                        self.tests.append(str(date.today()))
+
                 incompleted_schedules = self.grab_incompleted_tasks_from_db()
                 for inc_task in incompleted_schedules:
                     current_timestamp = int(datetime.now().timestamp())

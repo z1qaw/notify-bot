@@ -59,6 +59,20 @@ class ImapCheckerBot:
             except:
                 pass
 
+    def send_test_ok(self, task):
+        print('task', task)
+        task['body'] = format_body(task['body'])
+        text = 'Тест работоспособности: <b>ОК</b>'
+        users_list = self._db.get_users_list()
+        for user_id in users_list:
+            try:
+                self._bot_instance.send_message(
+                    user_id,
+                    text,
+                    parse_mode='html')
+            except:
+                pass
+
 
 class BotPollingThread(threading.Thread):
     def __init__(self, imap_bot, database, password=''):
