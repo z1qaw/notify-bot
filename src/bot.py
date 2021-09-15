@@ -59,9 +59,7 @@ class ImapCheckerBot:
             except:
                 pass
 
-    def send_test_ok(self, task):
-        print('task', task)
-        task['body'] = format_body(task['body'])
+    def send_test_ok(self):
         text = 'Тест работоспособности: <b>ОК</b>'
         users_list = self._db.get_users_list()
         for user_id in users_list:
