@@ -127,14 +127,14 @@ class BotPollingThread(threading.Thread):
                 logger.info('Bot: Send text to {0}: {1}'.format(user_id, text))
                 self.bot.reply_to(message, text)
 
-        @self.bot.message_handler(regexp='/del@\d+')
+        @self.bot.message_handler(regexp='/del\d+')
         def delete_schedule(message):
             logger.info('Bot: Message from {0}: {1}'.format(
                 message.chat.id, message.text))
             user_id = message.chat.id
             if self.database.is_user_exist(user_id):
                 text = 'Error'
-                schedule_id = message.text.replace('/del@', '')
+                schedule_id = message.text.replace('/del', '')
                 exists = self.database.is_schedule_exists(schedule_id)
                 if not exists:
                     text = 'Напоминание не найдено'
@@ -166,7 +166,7 @@ class BotPollingThread(threading.Thread):
                     text += '\n\n'.join(inc_schedules_texts)
                 logger.info('Bot: Send text to {0}: {1}'.format(user_id, text))
 
-                self.bot.reply_to(message, text)
+                self.bot.reply_to(message, text, parse_mode='html')
             else:
                 text = 'Вы не являетесь получателем.'
                 logger.info('Bot: Send text to {0}: {1}'.format(user_id, text))

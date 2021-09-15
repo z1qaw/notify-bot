@@ -172,7 +172,7 @@ def remaining_from_timestamp(timestamp):
 
 def minimize_text_to_schedule_list(db_schedule):
     schedule_text = minimize_mail(db_schedule[4])
-    del_command = f'/del@{db_schedule[0]}'
+    del_command = f'/del{db_schedule[0]}'
     ola_str = re.findall(
         'OLA: <b>\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d</b>', schedule_text)[0]
     client_part = re.findall('<b>Клиент: \S+</b>', schedule_text)[0]
