@@ -53,7 +53,7 @@ class Scheduler(threading.Thread):
             try:
 
                 if not str(date.today()) in self.tests:
-                    if datetime.now().hour >= 9:
+                    if datetime.now().hour == 9:
                         self.imap_bot.send_test_ok()
                         self.tests.append(str(date.today()))
 
