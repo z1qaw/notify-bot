@@ -178,8 +178,12 @@ def minimize_text_to_schedule_list(db_schedule):
     ola_str = re.sub(':\d\d</b>', '', ola_str)
     ola_str = re.sub('<b>', '', ola_str)
     client_part = re.findall('<b>Клиент: \S+</b>', schedule_text)[0]
-    inc_part = re.findall('инцидент.+', schedule_text)[0]
-    inc_digits = re.findall('\d+', inc_part)[0]
+    inc_part = re.findall('инцидент.+', schedule_text)
+    if not inc_part:
+        inc_part = re.findall('группу назначен .+', schedule_text)
+    if not inc_part:
+        inc_part = re.findall('ЗНО\-.+', schedule_text)
+    inc_digits = re.findall('\d+', inc_part[0])[0]
     time_remaining = '<b>' + remaining_from_timestamp(db_schedule[1]) + '</b>'
     return f'Инц-{inc_digits}\n{client_part}\n{ola_str}\n{time_remaining}\nУдалить: {del_command}'
 
