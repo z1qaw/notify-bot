@@ -41,7 +41,6 @@ def is_mail_from_allowed_emails(mail_body, allowed_emails: list = []):
 
 
 def is_mail_contain_ola_sla(decoded_mail_body: str):
-    print(decoded_mail_body)
     sla_pattern = 'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)'
     ola_pattern = 'Крайний срок по OLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)'
 

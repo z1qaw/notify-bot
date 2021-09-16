@@ -5,8 +5,11 @@ from . import mail_checker
 from .scheduler import Scheduler
 from .tools import get_env_var
 import os.path
-
+import sys
 from loguru import logger
+
+logger.remove()
+logger.add(sys.stderr, backtrace=True, diagnose=True)
 
 dotenv_settings = {}
 logger.info('Start bot')
@@ -18,10 +21,7 @@ if os.path.isfile('.env'):
         split_s = data.split('\n')
         for s in split_s:
             split_ss = s.split('=')
-            print(split_ss)
             dotenv_settings[split_ss[0]] = split_ss[1]
-
-print(dotenv_settings)
 
 
 TOKEN = get_env_var('TELEGRAM_BOT_TOKEN', required=True, d=dotenv_settings)

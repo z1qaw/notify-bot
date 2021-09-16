@@ -42,7 +42,6 @@ class ImapCheckerBot:
             self._db.remove_schedule_from_table(task['db_id'])
 
     def send_new_email_to_users(self, task):
-        print('task', task)
         task['body'] = format_body(task['body'])
         # notify_time = time_str_from_timestamp(
         #     str_date_timestamp(task['parsed_info']['ola_last_date']) - int(self.notify_before_time))
