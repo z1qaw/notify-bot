@@ -1,3 +1,4 @@
+import re
 import threading
 import time
 from datetime import datetime, date
@@ -24,6 +25,8 @@ class Scheduler(threading.Thread):
         self.tests = []
 
     def task_mail(self, mail: dict):
+        if re.findall('Приостановлен связанный', mail['body']):
+            return
         logger.info('Mail to add: ' + str(mail))
         self.db.insert_new_schedule(
             ola=str_date_timestamp(mail['parsed_info']['ola_last_date']),
