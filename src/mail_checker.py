@@ -32,16 +32,16 @@ class MailChecker(threading.Thread):
         latest_mail = self.imap_client.get_latest_mail(mail_count=20)
         found_valid_msg = []
         for msg in latest_mail:
-            logger.info('Checking found message')
+            logger.debug('Checking found message')
             mail_sender = mail_parser.is_mail_from_allowed_emails(
                 msg, allowed_emails=self.emails_to_check)
             if mail_sender:
-                logger.info('Found message from one of ' +
-                            str(self.emails_to_check))
+                logger.debug('Found message from one of ' +
+                             str(self.emails_to_check))
                 mail_hash = hashlib.md5(str(msg).encode()).hexdigest()
 
                 if self.check_mail_hash_in_db(mail_hash):
-                    logger.info('Valid mail hash already in db. Continue')
+                    logger.debug('Valid mail hash already in db. Continue')
                     continue
                 else:
                     logger.info(
