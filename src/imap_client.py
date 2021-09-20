@@ -38,5 +38,5 @@ class ImapClient:
         messages = []
         for id in latest_msg_ids:
             messages.append(self.get_email_msg(id))
-            logger.info(id)
+            logger.debug(id)
         return messages
