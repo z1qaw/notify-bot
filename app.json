@@ -27,6 +27,11 @@
             "description": "Почты, с которой обычно приходят сообщения об OLA. Можно указать несколько через запятую БЕЗ ПРОБЕЛОВ. Если не указать, будет работать, но дольше и большая вероятность того, что что-то сломается.",
             "required": false,
             "value": "abs@mail.ru,ads@mail.ru"
+        },
+        "TZ": {
+            "description": "Часовой пояс",
+            "required": false,
+            "value": "Europe/Moscow"
         }
     },
     "addons": ["heroku-postgresql:hobby-dev"]
