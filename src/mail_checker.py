@@ -74,6 +74,7 @@ class MailChecker(threading.Thread):
                     self.prepare_new_valid_message(valid_message)
 
             except:
+                self.imap_client.relogin()
                 logger.exception('Thread down with exception')
             finally:
                 time.sleep(5)

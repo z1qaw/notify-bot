@@ -6,12 +6,16 @@ from loguru import logger
 
 class ImapClient:
     def __init__(self, creds: dict) -> None:
-        self._mail = imaplib.IMAP4_SSL(creds['imap_host'])
+        self._creds = creds
+        self.relogin()
+
+    def relogin(self):
+        self._mail = imaplib.IMAP4_SSL(self._creds['imap_host'])
         self._mail.login(
-            creds['email'],
-            creds['password'],
+            self._creds['email'],
+            self._creds['password'],
         )
-    
+
     def get_email_ids(self, label='INBOX', criteria='ALL', max_mails_to_look=30):
         self._mail.select(label)
         _, data = self._mail.search(None, criteria)
