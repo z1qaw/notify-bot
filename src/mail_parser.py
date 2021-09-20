@@ -9,6 +9,10 @@ class ValidationError(Exception):
     pass
 
 
+osla_datetime_pattern = '\d\d[\./]\d\d[\./]\d\d \d\d\:\d\d\:\d\d\s\(.*\)'
+osla_pattern_no_tz = '\d\d[\./]\d\d[\./]\d\d \d\d\:\d\d\:\d\d'
+
+
 def decode_mail_body(message):
     body = ''.encode()
     if message.is_multipart():
@@ -24,6 +28,7 @@ def decode_mail_body(message):
 
 
 def is_mail_from_allowed_emails(mail_body, allowed_emails: list = []):
+    return True
     if not allowed_emails:
         return True
 
@@ -41,8 +46,8 @@ def is_mail_from_allowed_emails(mail_body, allowed_emails: list = []):
 
 
 def is_mail_contain_ola_sla(decoded_mail_body: str):
-    sla_pattern = 'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)'
-    ola_pattern = 'Крайний срок по OLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)'
+    sla_pattern = f'Крайний срок по SLA: {osla_datetime_pattern}'
+    ola_pattern = f'Крайний срок по OLA: {osla_datetime_pattern}'
 
     if re.findall(sla_pattern, decoded_mail_body) and re.findall(ola_pattern, decoded_mail_body):
         return True
@@ -50,15 +55,24 @@ def is_mail_contain_ola_sla(decoded_mail_body: str):
 
 
 def parse_ola_sla_content(decoded_mail_body: str):
-    sla_pattern = 'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)'
+    sla_pattern = f'Крайний срок по SLA: {osla_datetime_pattern}'
     found_sla = re.findall(sla_pattern, decoded_mail_body)[0]
-    sla_last_date = re.findall(
-        '\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)', found_sla)[0]
+    sla_last_date = re.findall(osla_datetime_pattern, found_sla)[0]
 
-    ola_pattern = 'Крайний срок по OLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)'
+    ola_pattern = f'Крайний срок по OLA: {osla_datetime_pattern}'
     found_ola = re.findall(ola_pattern, decoded_mail_body)[0]
-    ola_last_date = re.findall(
-        '\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)', found_ola)[0]
+    ola_last_date = re.findall(osla_datetime_pattern, found_ola)[0]
+    if re.findall('MSK\+\d+', ola_last_date):
+        tz = re.findall('\(MSK\+\d+\)', ola_last_date)[0]
+        ola_last_date = ola_last_date.replace(tz, '(MSK)')
+        tz_digit = int(tz.replace('(MSK', '').replace(')', ''))
+        prev_ola_date = re.findall(osla_pattern_no_tz, ola_last_date)[0]
+        ola_time = re.findall('\d\d\:\d\d\:\d\d', prev_ola_date)[0]
+        t = re.findall('\d\d', ola_time)
+        t[0] = str(int(t[0]) - tz_digit)
+        new_time = ':'.join(t)
+        new_ola_date = re.sub(ola_time, new_time, prev_ola_date)
+        ola_last_date = ola_last_date.replace(prev_ola_date, new_ola_date)
 
     return {
         'sla_last_date': sla_last_date,
@@ -66,8 +80,8 @@ def parse_ola_sla_content(decoded_mail_body: str):
     }
 
 
-def format_body(body: str):
-    body = body \
+def format_body(mail: dict):
+    body = mail['body'] \
         .replace('*', '') \
         .replace('<html>', '') \
         .replace('<HTML>', '') \
@@ -75,7 +89,9 @@ def format_body(body: str):
         .replace('</HTML>', '') \
         .replace('<br/>', '\n') \
         .replace('</div>', '')
-
+    new_ola_date = mail['parsed_info']['ola_last_date']
+    body = re.sub(f'OLA\: {osla_datetime_pattern}',
+                  f'OLA: {new_ola_date}', body)
     body = re.sub('<STYLE>.*</STYLE>', '', body)
     body = re.sub('<style>.*</style>', '', body)
     body = re.sub('<.*?>', '', body)
@@ -103,8 +119,8 @@ SAP ID клиента: X292
     """
     new_body = body.replace('*', '')
     new_body = re.sub(
-        'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)', '', new_body)
-    new_body = re.sub('\s\(MSK\)', '', new_body)
+        f'Крайний срок по SLA: {osla_datetime_pattern}', '', new_body)
+    new_body = re.sub('\s\(.*\)', '', new_body)
 
     if re.findall('Пересылаемое сообщение', new_body):
         all_strs = re.findall('.+', new_body)
@@ -117,10 +133,10 @@ SAP ID клиента: X292
     client_str = re.findall('Клиент\:.+', new_body)[0]
     new_client_str = '\n<b>' + client_str + '</b>'
     new_body = new_body.replace(client_str, new_client_str)
-
-    ola_str = re.findall(
-        'Крайний срок по OLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d', new_body)[0]
-    ola_time_str = re.findall('\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d', ola_str)[0]
+    print(new_body)
+    ola_str = re.findall(f'Крайний срок по OLA: {osla_pattern_no_tz}', new_body
+                         )[0]
+    ola_time_str = re.findall(osla_pattern_no_tz, ola_str)[0]
     new_ola_time_str = '<b>' + ola_time_str + '</b>'
     new_ola_str = ola_str.replace(ola_time_str, new_ola_time_str)
     new_body = new_body.replace(ola_str, new_ola_str)
@@ -173,7 +189,7 @@ def minimize_text_to_schedule_list(db_schedule):
     schedule_text = minimize_mail(db_schedule[4])
     del_command = f'/del{db_schedule[0]}'
     ola_str = re.findall(
-        'OLA: <b>\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d</b>', schedule_text)[0]
+        f'OLA: <b>{osla_pattern_no_tz}</b>', schedule_text)[0]
     ola_str = re.sub(':\d\d</b>', '', ola_str)
     ola_str = re.sub('<b>', '', ola_str)
     client_part = re.findall('<b>Клиент: \S+</b>', schedule_text)[0]
@@ -190,16 +206,16 @@ def minimize_text_to_schedule_list(db_schedule):
 def minimize_mail(decoded_mail_body):
     new_body = decoded_mail_body.replace('*', '')
     new_body = re.sub(
-        'Крайний срок по SLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d\s\(\w+\)', '', new_body)
+        f'Крайний срок по SLA: {osla_datetime_pattern}', '', new_body)
     new_body = re.sub('<.*?>', '', new_body)
     try:
         client_part = re.findall('Клиент: \S+', new_body)[0]
         new_client_part = '\n<b>' + client_part + '</b>'
-        new_body = re.sub('\s\(MSK\)', '', new_body)
+        new_body = re.sub('\s\(.*\)', '', new_body)
         ola_str = re.findall(
-            'Крайний срок по OLA: \d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d', new_body)[0]
+            f'Крайний срок по OLA: {osla_pattern_no_tz}', new_body)[0]
         ola_time_str = re.findall(
-            '\d\d\.\d\d\.\d\d \d\d\:\d\d\:\d\d', ola_str)[0]
+            osla_pattern_no_tz, ola_str)[0]
         new_ola_time_str = '<b>' + ola_time_str + '</b>'
         new_ola_str = ola_str.replace(ola_time_str, new_ola_time_str)
         new_body = new_body.replace(ola_str, new_ola_str)

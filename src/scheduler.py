@@ -11,7 +11,12 @@ MIN_30 = 60 * 30
 
 
 def str_date_timestamp(datetime_str: str) -> int:
-    date_time_obj = datetime.strptime(datetime_str, '%d.%m.%y %H:%M:%S (MSK)')
+    try:
+        date_time_obj = datetime.strptime(
+            datetime_str, '%d.%m.%y %H:%M:%S (MSK)')
+    except:
+        date_time_obj = datetime.strptime(
+            re.sub('\s\(.+\)', '', datetime_str), '%d/%m/%y %H:%M:%S')
     return int(date_time_obj.timestamp())
 
 
@@ -32,7 +37,7 @@ class Scheduler(threading.Thread):
             ola=str_date_timestamp(mail['parsed_info']['ola_last_date']),
             sla=str_date_timestamp(mail['parsed_info']['sla_last_date']),
             completed=False,
-            message_body=format_body(mail['body'])
+            message_body=format_body(mail)
         )
 
     def grab_incompleted_tasks_from_db(self):

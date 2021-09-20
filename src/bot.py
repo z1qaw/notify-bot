@@ -42,7 +42,7 @@ class ImapCheckerBot:
             self._db.remove_schedule_from_table(task['db_id'])
 
     def send_new_email_to_users(self, task):
-        task['body'] = format_body(task['body'])
+        task['body'] = format_body(task)
         # notify_time = time_str_from_timestamp(
         #     str_date_timestamp(task['parsed_info']['ola_last_date']) - int(self.notify_before_time))
         # text = f'У вас новое письмо. \nНапоминание об OLA придёт вам в ' + \

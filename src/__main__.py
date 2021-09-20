@@ -9,7 +9,7 @@ import sys
 from loguru import logger
 
 logger.remove()
-logger.add(sys.stderr, backtrace=True, diagnose=True, level='INFO')
+logger.add(sys.stderr, backtrace=True, diagnose=True)
 
 dotenv_settings = {}
 logger.info('Start bot')
