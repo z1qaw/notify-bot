@@ -31,6 +31,7 @@ class MailChecker(threading.Thread):
     def check_mail_for_valid_messages(self):
         latest_mail = self.imap_client.get_latest_mail(mail_count=20)
         found_valid_msg = []
+        found_invalid_msg = []
         for msg in latest_mail:
             logger.debug('Checking found message')
             mail_sender = mail_parser.is_mail_from_allowed_emails(
@@ -46,19 +47,40 @@ class MailChecker(threading.Thread):
                 else:
                     logger.info(
                         'Valid mail hash not in db. Check for OLA or SLA deadlines.')
-                    decoded_msg = mail_parser.decode_mail_body(msg)
+                    try:
+                        decoded_msg = mail_parser.decode_mail_body(msg)
+                    except Exception as e:
+                        logger.exception(
+                            f'Cannot parse mail body with error {e}, body:\n{msg}')
+                        continue
+
                     logger.info(decoded_msg)
 
                     if mail_parser.is_mail_contain_ola_sla(decoded_msg):
-                        found_valid_msg.append({
+                        try:
+                            found_valid_msg.append({
+                                'hash': mail_hash,
+                                'body': decoded_msg,
+                                'parsed_info': mail_parser.parse_ola_sla_content(decoded_msg)
+                            })
+                            logger.info('SLA and OLA has been found')
+                        except:
+                            found_invalid_msg.append({
+                                'hash': mail_hash,
+                                'body': decoded_msg,
+                                'message': 'OLA найден, но возникла ошибка при его обработке.'
+                            })
+                    else:
+                        found_invalid_msg.append({
                             'hash': mail_hash,
                             'body': decoded_msg,
-                            'parsed_info': mail_parser.parse_ola_sla_content(decoded_msg)
+                            'message': 'Правильный OLA не найден. Напоминание отправлено не будет.',
                         })
-                        logger.info('SLA and OLA has been found')
-                    else:
                         logger.info('SLA and OLA not found')
-        return found_valid_msg
+        return {
+            'found_valid_msg': found_valid_msg,
+            'found_invalid_msg': found_invalid_msg,
+        }
 
     def prepare_new_valid_message(self, valid_msg: dict):
         logger.info('Prepare new valid message ', valid_msg['hash'])
@@ -66,12 +88,19 @@ class MailChecker(threading.Thread):
         self.scheduler.task_mail(valid_msg)
         self.imap_bot.send_new_email_to_users(valid_msg)
 
+    def prepare_new_invalid_message(self, invalid_msg: dict):
+        logger.info('Prepare new invalid message ', invalid_msg['hash'])
+        self.db.add_new_mail_hash(invalid_msg['hash'])
+        self.imap_bot.send_invalid_email_to_users(invalid_msg)
+
     def run(self):
         while True:
             try:
-                last_valid_messages = self.check_mail_for_valid_messages()
-                for valid_message in last_valid_messages:
+                last_messages = self.check_mail_for_valid_messages()
+                for valid_message in last_messages['found_valid_msg']:
                     self.prepare_new_valid_message(valid_message)
+                for invalid_message in last_messages['found_invalid_msg']:
+                    self.prepare_new_invalid_message(invalid_message)
 
             except:
                 self.imap_client.relogin()
