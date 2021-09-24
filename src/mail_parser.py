@@ -89,9 +89,12 @@ def format_body(mail: dict):
         .replace('</HTML>', '') \
         .replace('<br/>', '\n') \
         .replace('</div>', '')
-    new_ola_date = mail['parsed_info']['ola_last_date']
-    body = re.sub(f'OLA\: {osla_datetime_pattern}',
-                  f'OLA: {new_ola_date}', body)
+    try:
+        new_ola_date = mail['parsed_info']['ola_last_date']
+        body = re.sub(f'OLA\: {osla_datetime_pattern}',
+                      f'OLA: {new_ola_date}', body)
+    except:
+        pass
     body = re.sub('<STYLE>.*</STYLE>', '', body)
     body = re.sub('<style>.*</style>', '', body)
     body = re.sub('<.*?>', '', body)
