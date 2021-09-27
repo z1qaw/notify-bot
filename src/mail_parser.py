@@ -202,7 +202,7 @@ def minimize_text_to_schedule_list(db_schedule):
         ola_str = re.findall(
             f'OLA: <b>{osla_pattern_no_tz}</b>', schedule_text)[0]
         ola_str = re.sub(':\d\d</b>', '', ola_str)
-        ola_str = re.sub('<>', '', ola_str)
+        ola_str = re.sub('<b>', '', ola_str)
         ola_str += '\n'
     except:
         ola_str = ''
