@@ -11,6 +11,7 @@ class ValidationError(Exception):
 
 osla_datetime_pattern = '\d\d[\./]\d\d[\./]\d\d \d\d\:\d\d\:\d\d\s\(.*\)'
 osla_pattern_no_tz = '\d\d[\./]\d\d[\./]\d\d \d\d\:\d\d\:\d\d'
+sla_full_pattern = f'((Крайний срок по SLA:)( {osla_datetime_pattern})?)'
 
 
 def decode_mail_body(message):
@@ -45,20 +46,15 @@ def is_mail_from_allowed_emails(mail_body, allowed_emails: list = []):
     return False
 
 
-def is_mail_contain_ola_sla(decoded_mail_body: str):
-    sla_pattern = f'Крайний срок по SLA: {osla_datetime_pattern}'
+def is_mail_contain_ola(decoded_mail_body: str):
     ola_pattern = f'Крайний срок по OLA: {osla_datetime_pattern}'
 
-    if re.findall(sla_pattern, decoded_mail_body) and re.findall(ola_pattern, decoded_mail_body):
+    if re.findall(ola_pattern, decoded_mail_body):
         return True
     return False
 
 
-def parse_ola_sla_content(decoded_mail_body: str):
-    sla_pattern = f'Крайний срок по SLA: {osla_datetime_pattern}'
-    found_sla = re.findall(sla_pattern, decoded_mail_body)[0]
-    sla_last_date = re.findall(osla_datetime_pattern, found_sla)[0]
-
+def parse_ola_content(decoded_mail_body: str):
     ola_pattern = f'Крайний срок по OLA: {osla_datetime_pattern}'
     found_ola = re.findall(ola_pattern, decoded_mail_body)[0]
     ola_last_date = re.findall(osla_datetime_pattern, found_ola)[0]
@@ -75,7 +71,6 @@ def parse_ola_sla_content(decoded_mail_body: str):
         ola_last_date = ola_last_date.replace(prev_ola_date, new_ola_date)
 
     return {
-        'sla_last_date': sla_last_date,
         'ola_last_date': ola_last_date
     }
 
@@ -121,28 +116,40 @@ SAP ID клиента: X292
 Выберите тип проблемы: - Не включается смартфон
     """
     new_body = body.replace('*', '')
-    new_body = re.sub(
-        f'Крайний срок по SLA: {osla_datetime_pattern}', '', new_body)
-    new_body = re.sub('\s\(.*\)', '', new_body)
+    try:
+        new_body = re.sub(
+            sla_full_pattern, '', new_body)
+        new_body = re.sub('\s\(.*\)', '', new_body)
+    except:
+        pass
 
-    if re.findall('Пересылаемое сообщение', new_body):
-        all_strs = re.findall('.+', new_body)
-        start_n = re.findall('На группу назначен.+', new_body)[0]
-        start_index = all_strs.index(start_n)
-        end_n = re.findall('\n\-+\n', new_body)[0].replace('\n', '')
-        end_index = all_strs.index(end_n)
-        new_body = '\n'.join(all_strs[start_index:end_index]).strip()
+    try:
+        if re.findall('Пересылаемое сообщение', new_body):
+            all_strs = re.findall('.+', new_body)
+            start_n = re.findall('На группу назначен.+', new_body)[0]
+            start_index = all_strs.index(start_n)
+            end_n = re.findall('\n\-+\n', new_body)[0].replace('\n', '')
+            end_index = all_strs.index(end_n)
+            new_body = '\n'.join(all_strs[start_index:end_index]).strip()
+    except:
+        pass
 
-    client_str = re.findall('Клиент\:.+', new_body)[0]
-    new_client_str = '\n<b>' + client_str + '</b>'
-    new_body = new_body.replace(client_str, new_client_str)
-    print(new_body)
-    ola_str = re.findall(f'Крайний срок по OLA: {osla_pattern_no_tz}', new_body
-                         )[0]
-    ola_time_str = re.findall(osla_pattern_no_tz, ola_str)[0]
-    new_ola_time_str = '<b>' + ola_time_str + '</b>'
-    new_ola_str = ola_str.replace(ola_time_str, new_ola_time_str)
-    new_body = new_body.replace(ola_str, new_ola_str)
+    try:
+        client_str = re.findall('Клиент\:.+', new_body)[0]
+        new_client_str = '\n<b>' + client_str + '</b>'
+        new_body = new_body.replace(client_str, new_client_str)
+    except:
+        pass
+
+    try:
+        ola_str = re.findall(f'Крайний срок по OLA: {osla_pattern_no_tz}', new_body
+                             )[0]
+        ola_time_str = re.findall(osla_pattern_no_tz, ola_str)[0]
+        new_ola_time_str = '<b>' + ola_time_str + '</b>'
+        new_ola_str = ola_str.replace(ola_time_str, new_ola_time_str)
+        new_body = new_body.replace(ola_str, new_ola_str)
+    except:
+        pass
 
     new_body = re.sub('\nГруппа поддержки\:.+', '', new_body)
     new_body = re.sub('\nПоддерживающий сервис\:.+', '', new_body)
@@ -191,30 +198,57 @@ def remaining_from_timestamp(timestamp):
 def minimize_text_to_schedule_list(db_schedule):
     schedule_text = minimize_mail(db_schedule[4])
     del_command = f'/del{db_schedule[0]}'
-    ola_str = re.findall(
-        f'OLA: <b>{osla_pattern_no_tz}</b>', schedule_text)[0]
-    ola_str = re.sub(':\d\d</b>', '', ola_str)
-    ola_str = re.sub('<b>', '', ola_str)
-    client_part = re.findall('<b>Клиент: \S+</b>', schedule_text)[0]
+    try:
+        ola_str = re.findall(
+            f'OLA: <b>{osla_pattern_no_tz}</b>', schedule_text)[0]
+        ola_str = re.sub(':\d\d</b>', '', ola_str)
+        ola_str = re.sub('<>', '', ola_str)
+        ola_str += '\n'
+    except:
+        ola_str = ''
+    try:
+        try:
+            client_part = re.findall(
+                '<b>Клиент: \S+</b>', schedule_text)[0] + '\n'
+        except:
+            client_part = re.findall('Клиент: \S+', schedule_text)[0] + '\n'
+    except:
+        client_part = ''
     inc_part = re.findall('инцидент.+', schedule_text)
     if not inc_part:
         inc_part = re.findall('группу назначен .+', schedule_text)
     if not inc_part:
         inc_part = re.findall('ЗНО\-.+', schedule_text)
-    inc_digits = re.findall('\d+', inc_part[0])[0]
-    time_remaining = '<b>' + remaining_from_timestamp(db_schedule[1]) + '</b>'
-    return f'Инц-{inc_digits}\n{client_part}\n{ola_str}\n{time_remaining}\nУдалить: {del_command}'
+    inc_digits = ''
+    try:
+        inc_digits = re.findall('\d+', inc_part[0])
+        inc_digits = '-'.join(inc_digits)
+        if inc_digits:
+            inc_digits = 'Инц-' + inc_digits + '\n'
+    except:
+        pass
+    try:
+        time_remaining = '<b>' + \
+            remaining_from_timestamp(db_schedule[1]) + '</b>' + '\n'
+    except:
+        time_remaining = ''
+    return f'{inc_digits}{client_part}{ola_str}{time_remaining}Удалить: {del_command}'
 
 
 def minimize_mail(decoded_mail_body):
     new_body = decoded_mail_body.replace('*', '')
     new_body = re.sub(
-        f'Крайний срок по SLA: {osla_datetime_pattern}', '', new_body)
+        sla_full_pattern, '', new_body)
     new_body = re.sub('<.*?>', '', new_body)
     try:
         client_part = re.findall('Клиент: \S+', new_body)[0]
         new_client_part = '\n<b>' + client_part + '</b>'
         new_body = re.sub('\s\(.*\)', '', new_body)
+        new_body = new_body.replace(client_part, new_client_part)
+    except:
+        pass
+
+    try:
         ola_str = re.findall(
             f'Крайний срок по OLA: {osla_pattern_no_tz}', new_body)[0]
         ola_time_str = re.findall(
@@ -222,10 +256,13 @@ def minimize_mail(decoded_mail_body):
         new_ola_time_str = '<b>' + ola_time_str + '</b>'
         new_ola_str = ola_str.replace(ola_time_str, new_ola_time_str)
         new_body = new_body.replace(ola_str, new_ola_str)
-        new_body = new_body.replace(client_part, new_client_part)
+    except:
+        pass
+    try:
         new_body = new_body.split('Поддерживающий сервис')[0]
         new_body = re.sub('\n\S{1,2}\n', '\n\n', new_body)
         new_body = re.sub('\n{3,}', '\n\n', new_body)
-        return new_body
     except:
-        return decoded_mail_body[:len(decoded_mail_body)//2] + ' ...'
+        pass
+        # return decoded_mail_body[:len(decoded_mail_body)//2] + ' ...'
+    return new_body

@@ -35,7 +35,7 @@ class Scheduler(threading.Thread):
         logger.info('Mail to add: ' + str(mail))
         self.db.insert_new_schedule(
             ola=str_date_timestamp(mail['parsed_info']['ola_last_date']),
-            sla=str_date_timestamp(mail['parsed_info']['sla_last_date']),
+            sla=0,
             completed=False,
             message_body=format_body(mail)
         )
@@ -48,7 +48,6 @@ class Scheduler(threading.Thread):
                 {
                     'db_id': task[0],
                     'ola': task[1],
-                    'sla': task[2],
                     'completed': task[3],
                     'email_body': task[4]
                 }

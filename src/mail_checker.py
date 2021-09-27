@@ -46,7 +46,7 @@ class MailChecker(threading.Thread):
                     continue
                 else:
                     logger.info(
-                        'Valid mail hash not in db. Check for OLA or SLA deadlines.')
+                        'Valid mail hash not in db. Check for OLA deadlines.')
                     try:
                         decoded_msg = mail_parser.decode_mail_body(msg)
                     except Exception as e:
@@ -56,12 +56,12 @@ class MailChecker(threading.Thread):
 
                     logger.info(decoded_msg)
 
-                    if mail_parser.is_mail_contain_ola_sla(decoded_msg):
+                    if mail_parser.is_mail_contain_ola(decoded_msg):
                         try:
                             found_valid_msg.append({
                                 'hash': mail_hash,
                                 'body': decoded_msg,
-                                'parsed_info': mail_parser.parse_ola_sla_content(decoded_msg)
+                                'parsed_info': mail_parser.parse_ola_content(decoded_msg)
                             })
                             logger.info('SLA and OLA has been found')
                         except:

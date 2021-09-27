@@ -187,6 +187,7 @@ class BotPollingThread(threading.Thread):
                 else:
                     inc_schedules_texts = []
                     for schedule in schedules:
+                        logger.info(schedule)
                         try:
                             remaining = int(schedule[1]) - \
                                 int(datetime.now().timestamp())
