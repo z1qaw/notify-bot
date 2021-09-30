@@ -13,7 +13,7 @@ MIN_30 = 60 * 30
 def str_date_timestamp(datetime_str: str) -> int:
     try:
         date_time_obj = datetime.strptime(
-            datetime_str, '%d.%m.%y %H:%M:%S (MSK)')
+            re.sub('\s\(.+\)', '', datetime_str), '%d.%m.%y %H:%M:%S')
     except:
         date_time_obj = datetime.strptime(
             re.sub('\s\(.+\)', '', datetime_str), '%d/%m/%y %H:%M:%S')
