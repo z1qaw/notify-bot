@@ -32,51 +32,59 @@ class MailChecker(threading.Thread):
         latest_mail = self.imap_client.get_latest_mail(mail_count=20)
         found_valid_msg = []
         found_invalid_msg = []
+        mail_hash = None
         for msg in latest_mail:
-            logger.debug('Checking found message')
-            mail_sender = mail_parser.is_mail_from_allowed_emails(
-                msg, allowed_emails=self.emails_to_check)
-            if mail_sender:
-                logger.debug('Found message from one of ' +
-                             str(self.emails_to_check))
-                mail_hash = hashlib.md5(str(msg).encode()).hexdigest()
+            try:
+                logger.debug('Checking found message')
+                mail_sender = mail_parser.is_mail_from_allowed_emails(
+                    msg, allowed_emails=self.emails_to_check)
+                if mail_sender:
+                    logger.debug('Found message from one of ' +
+                                 str(self.emails_to_check))
+                    mail_hash = hashlib.md5(str(msg).encode()).hexdigest()
 
-                if self.check_mail_hash_in_db(mail_hash):
-                    logger.debug('Valid mail hash already in db. Continue')
-                    continue
-                else:
-                    logger.info(
-                        'Valid mail hash not in db. Check for OLA deadlines.')
-                    try:
-                        decoded_msg = mail_parser.decode_mail_body(msg)
-                    except Exception as e:
-                        logger.exception(
-                            f'Cannot parse mail body with error {e}, body:\n{msg}')
+                    if self.check_mail_hash_in_db(mail_hash):
+                        logger.debug('Valid mail hash already in db. Continue')
                         continue
-
-                    logger.info(decoded_msg)
-
-                    if mail_parser.is_mail_contain_ola(decoded_msg):
+                    else:
+                        logger.info(
+                            'Valid mail hash not in db. Check for OLA deadlines.')
                         try:
-                            found_valid_msg.append({
-                                'hash': mail_hash,
-                                'body': decoded_msg,
-                                'parsed_info': mail_parser.parse_ola_content(decoded_msg)
-                            })
-                            logger.info('SLA and OLA has been found')
-                        except:
+                            decoded_msg = mail_parser.decode_mail_body(msg)
+                        except Exception as e:
+                            logger.exception(
+                                f'Cannot parse mail body with error {e}, body:\n{msg}')
+                            continue
+
+                        logger.info(decoded_msg)
+
+                        if mail_parser.is_mail_contain_ola(decoded_msg):
+                            try:
+                                found_valid_msg.append({
+                                    'hash': mail_hash,
+                                    'body': decoded_msg,
+                                    'parsed_info': mail_parser.parse_ola_content(decoded_msg)
+                                })
+                                logger.info('SLA and OLA has been found')
+                            except:
+                                found_invalid_msg.append({
+                                    'hash': mail_hash,
+                                    'body': decoded_msg,
+                                    'message': 'OLA найден, но возникла ошибка при его обработке.'
+                                })
+                        else:
                             found_invalid_msg.append({
                                 'hash': mail_hash,
                                 'body': decoded_msg,
-                                'message': 'OLA найден, но возникла ошибка при его обработке.'
+                                'message': 'Правильный OLA не найден. Напоминание отправлено не будет.',
                             })
-                    else:
-                        found_invalid_msg.append({
-                            'hash': mail_hash,
-                            'body': decoded_msg,
-                            'message': 'Правильный OLA не найден. Напоминание отправлено не будет.',
-                        })
-                        logger.info('SLA and OLA not found')
+                            logger.info('SLA and OLA not found')
+            except:
+                found_invalid_msg.append({
+                    'hash': mail_hash,
+                    'body': '',
+                    'message': f'Что-то не так. Хэш - {mail_hash}.',
+                })
         return {
             'found_valid_msg': found_valid_msg,
             'found_invalid_msg': found_invalid_msg,
