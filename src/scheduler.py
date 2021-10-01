@@ -1,16 +1,18 @@
 import re
 import threading
 import time
-from datetime import datetime, date
-from .mail_parser import format_body
+from datetime import date, datetime
+
 from loguru import logger
 
 from .database import Database
+from .mail_parser import format_body
 
 MIN_30 = 60 * 30
 
 
 def str_date_timestamp(datetime_str: str) -> int:
+    '''Возвращает timestamp из текстового представления datetime '''
     try:
         date_time_obj = datetime.strptime(
             re.sub('\s\(.+\).+', '', datetime_str), '%d.%m.%y %H:%M:%S')
@@ -21,6 +23,8 @@ def str_date_timestamp(datetime_str: str) -> int:
 
 
 class Scheduler(threading.Thread):
+    ''' Поток, отвечающий за напоминания и их связь с базой данных. '''
+
     def __init__(self, database: Database, imap_bot, notify_before: int = MIN_30):
         super(Scheduler, self).__init__()
         self.db = database
