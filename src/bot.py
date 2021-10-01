@@ -63,14 +63,15 @@ class ImapCheckerBot:
         message = task['message']
         text = f'<b>Новое оповещение.</b>\n<b>Напоминания по нему не будет</b>\n===============\n\n' + \
             task['body']
-        
+
         # text = format_new_mail(task['body'])
         users_list = self._db.get_users_list()
         for user_id in users_list:
             try:
                 self._bot_instance.send_message(
                     user_id,
-                    text)
+                    text,
+                    parse_mode='html')
             except:
                 pass
 
