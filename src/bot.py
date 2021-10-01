@@ -61,9 +61,9 @@ class ImapCheckerBot:
     def send_invalid_email_to_users(self, task):
         task['body'] = format_body(task)
         message = task['message']
-        text = f'У вас новое письмо. Напоминание по нему не придёт по причине \"{message}\"\n\n' + \
+        text = f'<b>Новое оповещение.</b>\n<b>Напоминания по нему не будет</b>\n===============\n\n' + \
             task['body']
-
+        
         # text = format_new_mail(task['body'])
         users_list = self._db.get_users_list()
         for user_id in users_list:

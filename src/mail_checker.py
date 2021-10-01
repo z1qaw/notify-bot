@@ -91,15 +91,21 @@ class MailChecker(threading.Thread):
         }
 
     def prepare_new_valid_message(self, valid_msg: dict):
-        logger.info('Prepare new valid message ', valid_msg['hash'])
-        self.db.add_new_mail_hash(valid_msg['hash'])
-        self.scheduler.task_mail(valid_msg)
-        self.imap_bot.send_new_email_to_users(valid_msg)
+        try:
+            logger.info('Prepare new valid message ', valid_msg['hash'])
+            self.db.add_new_mail_hash(valid_msg['hash'])
+            self.scheduler.task_mail(valid_msg)
+            self.imap_bot.send_new_email_to_users(valid_msg)
+        except Exception as e:
+            logger.exception(e)
 
     def prepare_new_invalid_message(self, invalid_msg: dict):
-        logger.info('Prepare new invalid message ', invalid_msg['hash'])
-        self.db.add_new_mail_hash(invalid_msg['hash'])
-        self.imap_bot.send_invalid_email_to_users(invalid_msg)
+        try:
+            logger.info('Prepare new invalid message ', invalid_msg['hash'])
+            self.db.add_new_mail_hash(invalid_msg['hash'])
+            self.imap_bot.send_invalid_email_to_users(invalid_msg)
+        except Exception as e:
+            logger.exception(e)
 
     def run(self):
         while True:
