@@ -206,13 +206,14 @@ class BotPollingThread(threading.Thread):
                 message.chat.id, message.text))
             user_id = message.chat.id
             if self.database.is_user_exist(user_id):
-                text = 'Незавершённые инциденты:\n\n'
                 schedules = self.database.get_incompleted_schedules()
+                text = 'Незавершённые инциденты:\n\n'
                 error_schedules_count = 0
                 if not schedules:
                     text = 'Нет незавершённых инцидентов'
                 else:
                     inc_schedules_texts = []
+                    good_schedules = 0
                     for schedule in schedules:
                         logger.info(schedule)
                         try:
@@ -223,10 +224,13 @@ class BotPollingThread(threading.Thread):
                             this_text = minimize_text_to_schedule_list(
                                 schedule)
                             inc_schedules_texts.append(this_text)
+                            good_schedules += 1
                         except:
                             error_schedules_count += 1
                             continue
                     text += '\n\n'.join(inc_schedules_texts)
+                    if not good_schedules:
+                        text = 'Нет незавершённых инцидентов'
                 logger.info('Bot: Send text to {0}: {1}'.format(user_id, text))
 
                 if error_schedules_count > 0:
